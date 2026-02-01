@@ -6,19 +6,19 @@ on:
       - main
 
 jobs:
-  publish:
-    if: contains(github.event.head_commit.message, '[RELEASE:')
+  build-and-publish:
+    if: contains(github.event.head_commit.message, '[RELEASE')
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org/'
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org/"
 
       - name: Install dependencies
         run: npm ci
@@ -26,19 +26,35 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Sync Version from Commit Tag
+      - name: Resolve version
+        id: version
         shell: bash
         run: |
           MSG="${{ github.event.head_commit.message }}"
-          
-          # Regex to find [RELEASE:1.2.3]
+
+          echo "Commit message:"
+          echo "$MSG"
+
+          # Case 1: explicit version [RELEASE:1.2.3]
           if [[ "$MSG" =~ \[RELEASE:([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
             VERSION="${BASH_REMATCH[1]}"
-            echo "Ditemukan versi pada commit: $VERSION"
-            echo "Memperbarui package.json..."
-            npm version $VERSION --no-git-tag-version
+            echo "mode=explicit" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Case 2: no version → auto bump patch
           else
-            echo "Tidak ada versi eksplisit pada pesan commit. Menggunakan versi dari package.json"
+            echo "mode=patch" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update package version
+        shell: bash
+        run: |
+          if [[ "${{ steps.version.outputs.mode }}" == "explicit" ]]; then
+            echo "Set version to ${{ steps.version.outputs.version }}"
+            npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          else
+            echo "Auto bump PATCH version"
+            npm version patch --no-git-tag-version
           fi
 
       - name: Publish to NPM
