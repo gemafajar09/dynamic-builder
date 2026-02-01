@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microfrontend Test</title>
+    <!-- Import the built script -->
+    <script type="module" src="./dist/micro-dynamic-ui.js"></script>
+    <style>
+        body {
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Microfrontend Test</h1>
+
+    <!-- 1. Dynamic Form -->
+    <h2>Dynamic Form</h2>
+    <micro-dynamic-form id="myForm"></micro-dynamic-form>
+
+    <hr style="margin: 2rem 0">
+
+    <!-- 2. Dynamic DataTable -->
+    <h2>Dynamic DataTable</h2>
+    <micro-dynamic-datatable id="myTable"></micro-dynamic-datatable>
+
+    <script>
+        // Form Config
+        const formConfig = {
+            id: "product-form",
+            title: "Product Form",
+            description: "Edit product details below",
+            sections: [
+                {
+                    key: "main",
+                    title: "Product Information",
+                    layoutColumns: 2,
+                    fields: [
+                        { key: "code", component: "DCodeTextField", model: "code", column: "half", props: { label: "Product Code" } },
+                        { key: "name", component: "DCodeTextField", model: "name", column: "half", props: { label: "Product Name" } }
+                    ]
+                }
+            ],
+            actions: [
+                { key: "cancel", component: "button", type: "button", label: "Cancel" },
+                { key: "submit", component: "button", type: "submit", label: "Save Changes" }
+            ],
+            submitEndpoint: null // using event
+        };
+
+        const formEl = document.getElementById('myForm');
+        formEl.config = formConfig;
+
+        // Listen for events - use native addEventListener for custom elements
+        formEl.addEventListener('submit', (e) => {
+            console.log('Form Submitted via Event:', e.detail);
+            alert('Form Submitted! Check console.');
+        });
+
+        // DataTable Config
+        const tableConfig = {
+            id: 1,
+            titleID: "Product List",
+            endpoint: { url: "https://api.example.com/products" }, // Mocked in component
+            pagination: true,
+            action: [{ key: 'add', label: 'Add New' }],
+            headers: [
+                { key: 'id', text: 'ID', value: 'id' },
+                { key: 'name', text: 'Name', value: 'name' },
+                { key: 'code', text: 'Code', value: 'code' }
+            ]
+        };
+
+        const tableEl = document.getElementById('myTable');
+        tableEl.config = tableConfig;
+
+        tableEl.addEventListener('action', (e) => {
+            console.log('Table Action:', e.detail);
+        });
+    </script>
+</body>
+
+</html>
