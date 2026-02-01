@@ -26,6 +26,21 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Sync Version from Commit Tag
+        shell: bash
+        run: |
+          MSG="${{ github.event.head_commit.message }}"
+          
+          # Regex to find [RELEASE:1.2.3]
+          if [[ "$MSG" =~ \[RELEASE:([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+            VERSION="${BASH_REMATCH[1]}"
+            echo "Ditemukan versi pada commit: $VERSION"
+            echo "Memperbarui package.json..."
+            npm version $VERSION --no-git-tag-version
+          else
+            echo "Tidak ada versi eksplisit pada pesan commit. Menggunakan versi dari package.json"
+          fi
+
       - name: Publish to NPM
         run: npm publish --access public
         env:
