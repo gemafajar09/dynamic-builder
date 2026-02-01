@@ -162,8 +162,3 @@ declare global {
   }
 }
 ```
-
-## Publishing ke NPM
-
-1. Commit perubahan Anda dengan pesan rilis, contoh: `feat: update feature [RELEASE:1.0.1]`.
-2. GitHub Action akan otomatis mendeteksi tag `[RELEASE:...]`, mengupdate versi di `package.json`, dan mem-publish ke NPM.
